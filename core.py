@@ -1,13 +1,17 @@
+# -*- coding: UTF-8 -*-
 import requests,time,json,os,re
 import logging
 from captcha_solver import CaptchaSolver
 from io import StringIO
 from  multiprocessing.dummy import Pool as ThreadPool
+from datetime import datetime
+from datetime import timedelta
 
 
+basedir = os.path.abspath(os.path.dirname(__file__))
 formdata={
-    "username":"15307130233",
-    "password":"c1997+0410"
+    "username":"x",
+    "password":"x"
 }
 loginheaders={
     "Connection": "keep-alive",
@@ -20,7 +24,7 @@ postheaders={
 }
 classtomonitor=["ECON119002.01"]
 classtorush2=["ECON119002.01","PEDU110076.06","PEDU110102.14","COMP130002.01","COMP130003.01","COMP130004.01","COMP130149.01","COMP130150.01"]
-classtorush=["ECON119002.01"]
+classtorush=["ENGL110064.04","ENGL110061.19","ENGL110066.02"]
 hascaptcha=False
 coo=None
 
@@ -39,7 +43,7 @@ def login():
         logging.debug("Password Error!")
     if "editAccount" in postresult.text:
         print("Login success!")
-        with open("tmpcookie.coo","w") as f:
+        with open(os.path.join(basedir,"tmpcookie.coo"),"w") as f:
             json.dump(requests.utils.dict_from_cookiejar(coo),f)
         return True
     else:
@@ -86,12 +90,12 @@ def getclassdata():
             print(recclassdata.request.url)
         else:
             logging.debug("class data modified")
-            with open("classdata.raw","w") as f:
+            with open(os.path.join(basedir,"classdata.raw"),"w") as f:
                 f.write(recclassdata.text)
-            os.system("./classdata_processor")
+            os.system(os.path.join(basedir,"classdata_processor"))
             time.sleep(0.1)
 
-    with open("classdata.json", "r") as f:
+    with open(os.path.join(basedir,"classdata.json"), "r") as f:
         classdata=json.load(f)
 
     global classtomonitor
@@ -116,7 +120,7 @@ def getclassdata():
 
 def prepareprocess(waittime=1):
     global coo
-    with open("tmpcookie.coo","r") as f:
+    with open(os.path.join(basedir,"tmpcookie.coo"),"r") as f:
         try:
             coo = requests.utils.cookiejar_from_dict(json.load(f))
             logging.debug(coo)
@@ -184,27 +188,42 @@ def rush(coursecode):
 
     postresult=requests.post("http://xk.fudan.edu.cn/xk/stdElectCourse!batchOperator.action?profileId=403",cookies=coo,data=rushdata,headers=postheaders)
     if "与以下课程冲突" in postresult.text:
-        print("时间冲突")
+        print("Time Conflict")
     elif "公选人数已满" in postresult.text:
-        print("公选人数已满")
+        print("No quota")
     elif "document.loginForm" in postresult.text:
-        rush(coursecode)
+        prepareprocess()
     elif "成功" in postresult.text:
-        print("选课成功!")
+        print("Success!")
+    elif "你已经选过" in postresult.text:
+        print("Already Success!")
     elif "操作失败,请联系管理员" in postresult.text:
-        print("似乎已经成功了")
+        print("Seems to be successful")
+    elif "过快点击" in postresult.text:
+        print("Click too fast")
+    elif "内部错误" in postresult.text:
+        print("Server internal error")
+    else:
+        print("Unknown situation")
+        print(postresult.text)
 
 
-if __name__=="__main__":
+def core():
     logging.basicConfig(level=logging.WARNING)
     # check()
     prepareprocess()
 
-    global classtorush
-    pool=ThreadPool(10)
-    for cnt in range(1000):
-        for i in range(10):
-            pool.apply_async(rush,args=(classtorush[0],))
-            time.sleep(0.1)
-    pool.close()
+    pool=ThreadPool(20)
+    time1 = datetime.now()
+    timeend= time1+timedelta(minutes=2)
+
+    while True:
+        time2 = datetime.now()
+        if(time2>timeend):
+            break
+        for i in classtorush:
+            pool.apply_async(rush,args=(i,))
+            time.sleep(0.25)
+    time.sleep(10)
+    pool.terminate()
     pool.join()
