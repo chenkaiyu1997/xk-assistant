@@ -1,5 +1,5 @@
-# 因选课系统升级，当前版本在更新前不能使用
-# 复旦大学选课辅助系统
-  本项目主要针对复旦大学选课系统的第二三轮抢课，可以在选课系统开放余量(13:00)时模拟浏览器高频率并行发送选课请求，从而提高选中概率。同时，脚本可以设置每日13:00自动运行，在第二轮选课的时间内只要有人退课就有大概率可以选进。
-# 运行方法
-  在core.py中填入自己的学号和密码，运行core.py即可。
+# This project is now deprecated due to the update of course selecting system.
+# Overview
+  This system is designed to help students select desired courses which is hard to get enrolled. This system feigns a web browser to send course select request to www.xk.fudan.edu.cn, with a frequency of nearly 10 times per second. In this way, the probability of getting enrolled is much higher than selecting courses manually. Meanwhile, if the system is set to run in 13:00 every day, it may help students select courses automatically during the whole second selecting period.
+# How to Run
+  Fill in your id, password and your desired course code in core.py, and then run core.py.
