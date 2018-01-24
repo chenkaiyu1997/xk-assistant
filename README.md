@@ -1,4 +1,4 @@
-# This project is now deprecated due to the update of course selecting system.
+# This project is now obsolete due to the update of course selecting system.
 # Overview
   This system is designed to help students select desired courses which is hard to get enrolled.
 #### How It Works
